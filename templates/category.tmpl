@@ -1,0 +1,20 @@
+{{ template "header" . }}
+
+	<!-- Main component for a primary marketing message or call to action -->
+	<div class="jumbotron">
+		<h1>{{ .Title }}</h1>
+		<p>{{ .Description }}</p>
+	</div>
+
+	<div class="row products">
+		{{ range .Products }}
+		<div class="col-lg-4">
+			<img width="126" src="{{ .Image }}" class="center-block" alt="" title="{{ .Title }}">
+			<h2>{{ .Title }}</h2>
+			<p>{{ .Description }}</p>
+			<a class="btn btn-primary" href="/{{ $.Slug }}/{{ .Slug }}" role="button">Ver detalhes »</a>
+		</div>
+		{{ end }}
+	</div>
+
+{{ template "footer" . }}

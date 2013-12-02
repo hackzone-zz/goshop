@@ -1,0 +1,34 @@
+
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>{{ if .Title }}{{ .Title }} - Hera Modas{{ else }}Hera Modas{{ end }}</title>
+	<meta name="description" value="{{ .Description }}">
+
+	<link rel="stylesheet" type="text/css" href="/static/css/bootstrap.css">
+	<link rel="stylesheet" type="text/css" href="/static/css/hera.css">
+</head>
+<body>
+
+	<div class="container">
+
+	<div class="navbar navbar-default" role="navigation">
+		<div class="navbar-header">
+			<a class="navbar-brand" href="/">Hera Modas</a>
+		</div>
+		<div class="navbar-collapse collapse">
+			<ul class="nav navbar-nav">
+				<li{{ if categorySlug . "vestidos-longos" }} class="active"{{ end }}><a href="/vestidos-longos/">Vestidos Longos</a></li>
+				<li{{ if categorySlug . "vestidos-curtos" }} class="active"{{ end }}><a href="/vestidos-curtos/">Vestidos curtos</a></li>
+				<li{{ if categorySlug . "acessorios" }} class="active"{{ end }}><a href="/acessorios/">Acessórios</a></li>
+			</ul>
+			<ul class="nav navbar-nav navbar-right">
+				<li{{ if categorySlug . "localizacao" }} class="active"{{ end }}><a href="/localizacao/">Localização</a></li>
+				<li{{ if categorySlug . "account" }} class="active"{{ end }}><a href="/account/">Meu cadastro</a></li>
+				<li{{ if categorySlug . "cart" }} class="active"{{ end }}><a href="/cart/">Carrinho de compras</a></li>
+			</ul>
+		</div>
+	</div>
+
