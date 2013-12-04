@@ -16,7 +16,7 @@ type cfg struct {
 }
 
 type FindMethods interface {
-	One(result interface{})
+	One(result interface{}) error
 	All(result interface{})
 }
 
@@ -59,8 +59,9 @@ func Find(collection string, query M) FindMethods {
 	})
 }
 
-func (f *finder) One(result interface{}) {
-	c.db.C(f.collection).Find(f.query).One(result)
+func (f *finder) One(result interface{}) error {
+	err := c.db.C(f.collection).Find(f.query).One(result)
+	return err
 }
 
 func (f *finder) All(result interface{}) {
