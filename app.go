@@ -1,47 +1,19 @@
 package main
 
 import (
-	"os"
 	"net/http"
+	"goshop/app"
+	"goshop/app/database"
 	"github.com/codegangsta/martini"
 	"github.com/codegangsta/martini-contrib/gzip"
 	"github.com/codegangsta/martini-contrib/render"
 	"html/template"
-	"labix.org/v2/mgo"
-	"labix.org/v2/mgo/bson"
+	//"labix.org/v2/mgo/bson"
 	"reflect"
 	"log"
 )
 
-type TemplateData struct {
-	Slug, Title, Description string
-	Products []Product
-	Product Product
-	Categories []Category
-	Category Category
-}
-
-type Page struct {
-	Slug, Title, Description string
-}
-
-type Category struct {
-	Slug, Title, Description string
-	Products []Product
-}
-
-type Product struct {
-	Slug, Title, Description, Image string
-	Price float64
-	Off float64
-	Category Category
-}
-
-type App struct {
-	session *mgo.Session
-	categories []Category
-}
-
+/*
 // Get on database all categories
 func (app *App) getCategories(force bool) []Category {
 	if force == true {
@@ -87,29 +59,18 @@ func (app *App) getCategoryProducts(category *Category) {
 	productsCollection := app.session.DB("heramodas").C("products")
 	productsCollection.Find(bson.M{"category": category.Slug}).All(&category.Products)
 }
+*/
 
 func main() {
 	log.Println("Starting...")
 
-	// connect to mongo
-	session, err := mgo.Dial("localhost")
-	
-	app := App{session, []Category{}}
-
-	app.getCategories(true)
-
-	// error on connect
-	if err != nil {
-		panic(err)
-		os.Exit(1)
+	// create shop app instance
+	shop := app.Shop{
+		DatabaseSession: database.Connect("localhost", "heramodas"),
 	}
 
-	// define 404 page content
-	page404 := Page{
-		Slug: "404",
-		Title: "Erro 404 - Página não encontrada",
-		Description: "A página que você tentou acessar não existe ou foi removida.",
-	}
+	// get all categories
+	database.Find("categories", database.M{}).All(&shop.Categories)
 
 	m := martini.Classic()
 
@@ -145,28 +106,50 @@ func main() {
 	// set static path
 	m.Use(martini.Static("assets"))
 
-	// home
-	m.Get("/", func(r render.Render) {
-		r.HTML(200, "page", Page{
-			Slug: "",
-			Title: "Hera Modas",
-			Description: "Endereço e horários de funcionamento da loja física da Hera Modas e Presentes.",
-		})
+	shop.Routes = append(shop.Routes, app.Page{
+		HttpCode: 200,
+		HttpMethod: "GET",
+		Template: "page",
+		Path: "/",
+		Slug: "",
+		Title: "Hera Modas",
+		Description: "Vendas on-line de vestidos de festa, longos e longuetes, além de bolsas e bijouterias em strass. Trabalhamos também com tamanhos grandes, até XXG.",
 	})
 
-	m.Get("/localizacao", func(r render.Render) {
-		r.HTML(200, "localizacao", Page{
-			Slug: "localizacao",
-			Title: "Localização",
-			Description: "Endereço e horários de funcionamento da loja física da Hera Modas e Presentes.",
-		})
+	shop.Routes = append(shop.Routes, app.Page{
+		HttpCode: 200,
+		HttpMethod: "GET",
+		Template: "localizacao",
+		Path: "/localizacao",
+		Slug: "localizacao",
+		Title: "Lojas - Hera Modas",
+		Description: "Endereço e horários de funcionamento da loja física da Hera Modas e Presentes.",
 	})
 
-	// 404
-	m.Get("/404", func(r render.Render) {
-		r.HTML(404, "404", page404)
+	shop.Routes = append(shop.Routes, app.Page{
+		HttpCode: 404,
+		HttpMethod: "GET",
+		Template: "404",
+		Path: "/404",
+		Slug: "404",
+		Title: "Página não encontrada - Hera Modas",
+		Description: "A página que você tentou acessar não existe ou foi removida.",
 	})
 
+	// Register routes
+	for i := 0; i < len(shop.Routes); i++ {
+		page := shop.Routes[i]
+
+		switch page.HttpMethod {
+		case "GET":
+			m.Get(page.Path, func(r render.Render) {
+				log.Println( page.Template )
+				r.HTML(page.HttpCode, page.Template, page)
+			})
+		}
+	}
+
+	/*
 	// category
 	m.Get("/:category", func(params martini.Params, r render.Render) {
 		if category, ok := app.getCategory(params["category"]); ok {
@@ -187,7 +170,8 @@ func main() {
 			r.HTML(404, "404", page404)
 		}
 	})
+	*/
 
-	// setting port to listen
+
 	http.ListenAndServe(":8080", m)
 }
