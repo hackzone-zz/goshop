@@ -14,9 +14,9 @@ func main() {
 	log.Println("Starting...")
 
 	// create shop app instance
-	shop := app.Shop{}
+	shop := goshop.Shop{}
 
-	shop.Routes = append(shop.Routes, app.Page{
+	shop.Routes = append(shop.Routes, goshop.Page{
 		HttpCode: 200,
 		HttpMethod: "GET",
 		Template: "page",
@@ -26,7 +26,7 @@ func main() {
 		Description: "Vendas on-line de vestidos de festa, longos e longuetes, além de bolsas e bijouterias em strass. Trabalhamos também com tamanhos grandes, até XXG.",
 	})
 
-	shop.Routes = append(shop.Routes, app.Page{
+	shop.Routes = append(shop.Routes, goshop.Page{
 		HttpCode: 200,
 		HttpMethod: "GET",
 		Template: "localizacao",
@@ -36,7 +36,7 @@ func main() {
 		Description: "Endereço e horários de funcionamento da loja física da Hera Modas e Presentes.",
 	})
 
-	shop.Routes = append(shop.Routes, app.Page{
+	shop.Routes = append(shop.Routes, goshop.Page{
 		HttpCode: 404,
 		HttpMethod: "GET",
 		Template: "404",
@@ -46,13 +46,13 @@ func main() {
 		Description: "A página que você tentou acessar não existe ou foi removida.",
 	})
 
-	shop.Routes = append(shop.Routes, app.InternalRoute{
+	shop.Routes = append(shop.Routes, goshop.InternalRoute{
 		HttpMethod: "GET",
 		Path: "/:category",
 		Run: shop.RouteCategory,
 	})
 
-	shop.Routes = append(shop.Routes, app.InternalRoute{
+	shop.Routes = append(shop.Routes, goshop.InternalRoute{
 		HttpMethod: "GET",
 		Path: "/:category/:product",
 		Run: shop.RouteProduct,
@@ -90,5 +90,5 @@ func main() {
 			}})
 	}))
 
-	http.ListenAndServe(":8080", shop.Server)
+	http.ListenAndServe(":8081", shop.Server)
 }
