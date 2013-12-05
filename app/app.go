@@ -1,4 +1,4 @@
-package app
+package goshop
 
 import (
 	"goshop/app/database"
@@ -42,26 +42,26 @@ type Product struct {
 }
 
 // Start server and connection to database
-func (app *Shop) Start() *Shop {
+func (gs *Shop) Start() *Shop {
 	// don't connect if is connected
-	if app.databaseSession == nil {
-		app.databaseSession = database.Connect("localhost", "heramodas")
+	if gs.databaseSession == nil {
+		gs.databaseSession = database.Connect("localhost", "heramodas")
 	}
 
 	// create martini instance
-	app.Server = martini.Classic()
+	gs.Server = martini.Classic()
 
 	// gzip all requests
-	app.Server.Use(gzip.All())
+	gs.Server.Use(gzip.All())
 
 	// static files
-	app.Server.Use(martini.Static("assets"))
+	gs.Server.Use(martini.Static("assets"))
 
-	return app
+	return gs
 }
 
 // Get category by slug in database
-func (app *Shop) GetCategory(slug string, products bool) (Category, error) {
+func (gs *Shop) GetCategory(slug string, products bool) (Category, error) {
 	var c Category
 
 	// find category
@@ -76,7 +76,7 @@ func (app *Shop) GetCategory(slug string, products bool) (Category, error) {
 }
 
 // Get product details in database
-func (app *Shop) GetProduct(category string, slug string) (Product, error) {
+func (gs *Shop) GetProduct(category string, slug string) (Product, error) {
 	var p Product
 
 	// finc product
@@ -86,10 +86,10 @@ func (app *Shop) GetProduct(category string, slug string) (Product, error) {
 }
 
 // Define routes
-func (app *Shop) Route() *Shop {
+func (gs *Shop) Route() *Shop {
 	// Register routes
-	for i := 0; i < len(app.Routes); i++ {
-		page := app.Routes[i]
+	for i := 0; i < len(gs.Routes); i++ {
+		page := gs.Routes[i]
 
 		fields := reflect.Indirect(reflect.ValueOf(page))
 
@@ -100,57 +100,19 @@ func (app *Shop) Route() *Shop {
 					// convert route to page struct
 					route := page.(Page)
 
-					app.Server.Get(route.Path, func(r render.Render) {
+					gs.Server.Get(route.Path, func(r render.Render) {
 						r.HTML(route.HttpCode, route.Template, route)
 					})
 				case InternalRoute:
 					// convert route to InternalRoute struct
 					r := page.(InternalRoute)
 
-					app.Server.Get(r.Path, r.Run)
+					gs.Server.Get(r.Path, r.Run)
 			}
 		}
 	}
 
-	return app
-}
-
-// Category router
-func (app *Shop) RouteCategory(params martini.Params, r render.Render) {
-	slug := params["category"]
-
-	if slug == "" {
-		// if there is no parameter, render 404 error
-		renderError(404, r)
-	} else {
-		// look for the category and their products
-		if category, err := app.GetCategory(slug, true); err == nil {
-			// render category page
-			r.HTML(200, "category", category)
-		} else {
-			// category not found
-			renderError(404, r)
-		}
-	}
-}
-
-// Product details router
-func (app *Shop) RouteProduct(params martini.Params, r render.Render) {
-	category := params["category"]
-	slug  := params["product"]
-
-	if category == "" || slug == "" {
-		// if there are no paramters, render 404 error
-		renderError(404, r)
-	} else {
-		// look for the product
-		if product, err := app.GetProduct(category, slug); err == nil {
-			r.HTML(200, "product", product)
-		} else {
-			// product not found
-			renderError(404, r)
-		}
-	}
+	return gs
 }
 
 // Render error page
