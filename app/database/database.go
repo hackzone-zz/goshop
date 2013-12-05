@@ -1,10 +1,8 @@
 package database
 
 import (
-	//"log"
 	"os"
 	"labix.org/v2/mgo"
-	//"labix.org/v2/mgo/bson"
 )
 
 type M map[string]interface{}

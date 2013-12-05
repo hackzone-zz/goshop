@@ -75,13 +75,16 @@ func main() {
 				fields := reflect.Indirect(o)
 
 				// Try to get the Category struct. It's an exception
-				category := fields.FieldByName("Category")
+				category_struct := fields.FieldByName("Category")
 
-				if category.IsValid() {
-					// get slug category
-					slug = category.FieldByName("Slug").String()
+				// if category_struct is valid, it's a product struct
+				if category_struct.IsValid() {
+					p := obj.(goshop.Product)
+
+					// get category slug
+					slug = p.Category.Slug
 				} else {
-					// it's not a Category struct
+					// it's not a Product struct
 					// so, try to get Slug at the first level struct
 					slug = fields.FieldByName("Slug").String()
 				}

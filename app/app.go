@@ -7,6 +7,7 @@ import (
 	"github.com/codegangsta/martini-contrib/gzip"
 	"github.com/codegangsta/martini-contrib/render"
 	"reflect"
+	"errors"
 )
 
 type Shop struct {
@@ -54,18 +55,29 @@ func (gs *Shop) Start() *Shop {
 	// gzip all requests
 	gs.Server.Use(gzip.All())
 
-	// static files
-	gs.Server.Use(martini.Static("assets"))
-
 	return gs
 }
 
 // Get category by slug in database
 func (gs *Shop) GetCategory(slug string, products bool) (Category, error) {
 	var c Category
+	var err error = errors.New("Category not found")
 
-	// find category
-	err := database.Find("categories", database.M{"slug": slug}).One(&c)
+	if len(gs.Categories) > 0 {
+		// find category in cached category list
+		for _, category := range gs.Categories {
+			if category.Slug == slug {
+				c = category
+				err = nil
+				break
+			}
+		}
+	}
+
+	// try to find category in database
+	if err != nil {
+		err = database.Find("categories", database.M{"slug": slug}).One(&c)
+	}
 
 	if products == true && err == nil {
 		// look for category products
@@ -81,6 +93,10 @@ func (gs *Shop) GetProduct(category string, slug string) (Product, error) {
 
 	// finc product
 	err := database.Find("products", database.M{"category": category, "slug": slug}).One(&p)
+
+	if err == nil {
+		p.Category, err = gs.GetCategory(category, false)
+	}
 
 	return p, err
 }
